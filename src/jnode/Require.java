@@ -17,7 +17,7 @@ import org.mozilla.javascript.Scriptable;
 
 public class Require implements Function {
 	
-	protected String pwd;
+	protected final String pwd;
 	private Map<String, Object> cache = new HashMap<String, Object>();
 	
 	public Require(String initalPwd, Map<String, Object> builtins) {
@@ -30,6 +30,18 @@ public class Require implements Function {
 		} catch (JavaScriptException e) {
 			throw new IllegalArgumentException("initialPwd wasn't an absolute path");
 		}
+	}
+	
+	private Require(Require old, String pwd) {
+		if (old == null) {
+			throw new RuntimeException("old was null");
+		}
+		if (pwd == null) {
+			throw new RuntimeException("pwd was null");
+		}
+		
+		this.cache = old.cache;
+		this.pwd = pwd;
 	}
 	
 	@Override
@@ -212,19 +224,14 @@ public class Require implements Function {
 					throw new JavaScriptException(e, "require", 2);
 				}
 				
-				final String oldPwd = this.pwd;
-				try {
-					this.pwd = path;
-					Scriptable exportsScope = cx.newObject(scope);
-					exportsScope.setParentScope(scope);
-					Object r = cx.newObject(scope);
-					exportsScope.put("exports", exportsScope, r);
-					this.cache.put(resourceName, r);
-					cx.evaluateString(exportsScope, scriptBuilder.toString(), "require", 10, null);
-					return r;
-				} finally {
-					this.pwd = oldPwd;
-				}
+				Scriptable exportsScope = cx.newObject(scope);
+				exportsScope.setParentScope(scope);
+				Object r = cx.newObject(scope);
+				exportsScope.put("exports", exportsScope, r);
+				exportsScope.put("require", exportsScope, new Require(this, path));
+				this.cache.put(resourceName, r);
+				cx.evaluateString(exportsScope, scriptBuilder.toString(), "require", 10, null);
+				return r;
 			} else {
 				throw new JavaScriptException(path + file + " not found", "require", 1);
 			}		

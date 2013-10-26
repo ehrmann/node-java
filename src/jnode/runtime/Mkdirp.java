@@ -1,4 +1,4 @@
-package jnode.lib;
+package jnode.runtime;
 
 public class Mkdirp {
 

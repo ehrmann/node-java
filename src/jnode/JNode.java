@@ -5,34 +5,24 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.Reader;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import jnode.lib.FS;
-import jnode.lib.Mkdirp;
-import jnode.lib.Os;
-import jnode.lib.Path;
-import jnode.lib.Sys;
-import jnode.lib.Url;
-import jnode.lib.Util;
+import jnode.runtime.FS;
+import jnode.runtime.Mkdirp;
+import jnode.runtime.Os;
+import jnode.runtime.Path;
+import jnode.runtime.Sys;
+import jnode.runtime.Url;
+import jnode.runtime.Util;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 
 public class JNode {
 
-	public static Map<String, Object> env;
-	static {
-		env = new LinkedHashMap<String, Object>();
-		env.put("fs", new FS());
-		env.put("mkdirp", new Mkdirp());
-		env.put("os", new Os());
-		env.put("sys", new Sys());
-		env.put("path", new Path());
-		env.put("util", new Util());
-		env.put("url", new Url());
-	}
-	
 	public static void main(String[] args) throws IOException {
 		
 		if (args.length < 1) {
@@ -81,12 +71,29 @@ public class JNode {
 		Context cx = Context.enter();
 		Scriptable scope = cx.initStandardObjects();
 		
+		cx.getWrapFactory().setJavaPrimitiveWrap(false);
+		
+		Map<String, Object> env = new LinkedHashMap<String, Object>();
+
+		env.put("fs", new FS(cx, scope));
+		env.put("mkdirp", new Mkdirp());
+		env.put("os", new Os());
+		env.put("sys", new Sys());
+		env.put("path", new Path());
+		env.put("util", new Util());
+		env.put("url", new Url());
+		
 		// Populate the default environment
+		ArrayList<String> processArgs = new ArrayList<String>(args.length + 1);
+		processArgs.add("node");
+		processArgs.addAll(Arrays.asList(args));
+		
 		scope.put("require", scope, new Require(Require.getPath("/", "/" + main), env));
-		scope.put("process", scope, new Process(args));
+		scope.put("process", scope, new Process(processArgs.toArray(new String[0])));
 		scope.put("console", scope, new Console());
 		
 		// Run the code
+		// System.out.println(cx.toString(cx.evaluateString(scope, "process.argv[2]", "", 1, null)));
 		cx.evaluateString(scope, script, args[0], 1, null);
 	}
 	
