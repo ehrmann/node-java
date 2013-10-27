@@ -10,16 +10,19 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import jnode.runtime.Console;
 import jnode.runtime.FS;
 import jnode.runtime.Mkdirp;
 import jnode.runtime.Os;
 import jnode.runtime.Path;
-import jnode.runtime.Sys;
+import jnode.runtime.Process;
 import jnode.runtime.Url;
 import jnode.runtime.Util;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
+import org.mozilla.javascript.ScriptableObject;
+import org.mozilla.javascript.annotations.JSFunction;
 
 public class JNode {
 
@@ -78,7 +81,7 @@ public class JNode {
 		env.put("fs", new FS(cx, scope));
 		env.put("mkdirp", new Mkdirp());
 		env.put("os", new Os());
-		env.put("sys", new Sys());
+		env.put("sys", new Util());
 		env.put("path", new Path());
 		env.put("util", new Util());
 		env.put("url", new Url());
@@ -93,7 +96,6 @@ public class JNode {
 		scope.put("console", scope, new Console());
 		
 		// Run the code
-		// System.out.println(cx.toString(cx.evaluateString(scope, "process.argv[2]", "", 1, null)));
 		cx.evaluateString(scope, script, args[0], 1, null);
 	}
 	

@@ -10,12 +10,14 @@ import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.Map;
 
+import org.mozilla.javascript.BaseFunction;
 import org.mozilla.javascript.Context;
-import org.mozilla.javascript.Function;
 import org.mozilla.javascript.JavaScriptException;
 import org.mozilla.javascript.Scriptable;
 
-public class Require implements Function {
+public class Require extends BaseFunction {
+	
+	private static final long serialVersionUID = -8413606781796676262L;
 	
 	protected final String pwd;
 	private Map<String, Object> cache = new HashMap<String, Object>();
@@ -44,101 +46,6 @@ public class Require implements Function {
 		this.pwd = pwd;
 	}
 	
-	@Override
-	public void delete(String arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void delete(int arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public Object get(String arg0, Scriptable arg1) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Object get(int arg0, Scriptable arg1) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public String getClassName() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Object getDefaultValue(Class<?> arg0) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Object[] getIds() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Scriptable getParentScope() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Scriptable getPrototype() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public boolean has(String arg0, Scriptable arg1) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean has(int arg0, Scriptable arg1) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean hasInstance(Scriptable arg0) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public void put(String arg0, Scriptable arg1, Object arg2) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void put(int arg0, Scriptable arg1, Object arg2) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void setParentScope(Scriptable arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void setPrototype(Scriptable arg0) {
-		// TODO Auto-generated method stub
-		
-	}
 
 	@Override
 	public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
@@ -147,6 +54,7 @@ public class Require implements Function {
 			
 			// If the require doesn't have a path (i.e. a builtin), try pulling it directly from cache
 			if (!fullFilePath.startsWith("/") && !fullFilePath.startsWith("./") && !fullFilePath.startsWith("../")) {
+				//return /*Context.toObject(*/this.cache.get(args[0].toString())/*, scope)*/;
 				return Context.toObject(this.cache.get(args[0].toString()), scope);
 			}
 			

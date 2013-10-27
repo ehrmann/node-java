@@ -10,12 +10,33 @@ public class Path {
 	}
 	
 	public String dirname(String file) {
-		return null;
+		// Trim trailing slashes (except a leading slash)
+		file = file.replaceFirst("(?<!^)/*$", "");
+		
+		String dirname = file.replaceFirst("/+[^/]*$", "");
+		
+		if (dirname.length() == file.length()) {
+			dirname = ".";
+		} else if (dirname.isEmpty()){
+			dirname = "/";
+		}
+		
+		return dirname;
 	}
 	
 	public String basename(String file) {
-		return null;
+		// Trim trailing slashes (except a leading slash)
+		file = file.replaceFirst("(?<!^)/*$", "");
+		
+		return file.replaceFirst(".*[/](?!$)", "");
 	}
 	
+	public String basename(String file, String extension) {
+		String basename = basename(file);
+		if (basename.endsWith(extension)) {
+			basename = basename.substring(0, basename.length() - extension.length());
+		}
+		return basename;
+	}
 	
 }

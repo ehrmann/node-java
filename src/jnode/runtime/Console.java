@@ -1,4 +1,4 @@
-package jnode;
+package jnode.runtime;
 
 import java.io.PrintStream;
 
