@@ -21,8 +21,6 @@ import jnode.runtime.Util;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
-import org.mozilla.javascript.ScriptableObject;
-import org.mozilla.javascript.annotations.JSFunction;
 
 public class JNode {
 
