@@ -5,6 +5,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.Reader;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -38,7 +40,21 @@ public class JNode {
 		// Read in called script
 		StringBuilder scriptBuilder = new StringBuilder();
 		char[] buffer = new char[2048];
-		InputStream in = JNode.class.getClassLoader().getResourceAsStream(main);
+		InputStream in;
+		inInit: {
+			in = JNode.class.getClassLoader().getResourceAsStream(main);
+			if (in != null) {
+				break inInit;
+			}
+		
+			try {
+				in = (new URL("core:/" + main)).openStream();
+				if (in != null) {
+					break inInit;
+				}
+			} catch (MalformedURLException e) { }
+		}
+		
 		if (in != null) {
 			try {
 				Reader reader = new InputStreamReader(in, "UTF-8");
