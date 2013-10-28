@@ -1,10 +1,16 @@
 GCJ = gcj
 
 lessc: js.o
-	cd src && $(GCJ) --main=jnode.JNode --classpath=../lib/js.jar:. -o ../lessc `find . -name '*.java'` ../js.o ../examples/less.jar
+	$(GCJ) --main=jnode.JNode --classpath=lib/js.jar:src -o lessc `find src -name '*.java'` js.o less.o xmlbeans.o
 
-js.o: lib/js.jar
-	gcj -c --classpath=lib/xbean.jar -o js.o lib/js.jar
+less.o: examples/less.jar
+	gcj -c -o less.o less.jar
+
+xmlbeans.o: lib/xmlbeans.jar
+	$(GCJ) -c --classpath=lib/xmlbeans.jar -o xmlbeans.o lib/xmlbeans.jar
+
+js.o: lib/js.jar xmlbeans.o
+	gcj -c --classpath=lib/xmlbeans.jar:lib/js.jar -o js.o lib/js.jar
 	
 clean:
-	rm -f js.o lessc
+	rm -f js.o less.o xmlbeans.o lessc
