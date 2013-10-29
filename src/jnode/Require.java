@@ -20,18 +20,23 @@ public class Require extends BaseFunction {
 	private static final long serialVersionUID = -8413606781796676262L;
 	
 	protected final String pwd;
-	private Map<String, Object> cache = new HashMap<String, Object>();
+	protected final FileLoader fileLoader;
+	private final Map<String, Object> cache;
 	
-	public Require(String initalPwd, Map<String, Object> builtins) {
+	public Require(String initalPwd, Map<String, Object> builtins, FileLoader fileLoader) {
 		if (builtins == null) {
 			throw new NullPointerException("builtins was null");
 		}
-		try {
-			this.pwd = initalPwd;
-			this.cache.putAll(builtins);
-		} catch (JavaScriptException e) {
-			throw new IllegalArgumentException("initialPwd wasn't an absolute path");
+		if (fileLoader == null) {
+			throw new NullPointerException("fileLoader was null");
 		}
+
+		this.cache = new HashMap<String, Object>();
+		this.pwd = initalPwd;
+		this.fileLoader = fileLoader;
+		
+		this.cache.putAll(builtins);
+
 	}
 	
 	private Require(Require old, String pwd) {
@@ -44,6 +49,7 @@ public class Require extends BaseFunction {
 		
 		this.cache = old.cache;
 		this.pwd = pwd;
+		this.fileLoader = old.fileLoader;
 	}
 	
 
@@ -79,7 +85,7 @@ public class Require extends BaseFunction {
 						return this.cache.get(resourceName);
 					}
 					
-					in = JNode.class.getClassLoader().getResourceAsStream(resourceName);
+					in = this.fileLoader.getInputStream(resourceName);
 					if (in != null) {
 						break builder;
 					}
@@ -89,7 +95,7 @@ public class Require extends BaseFunction {
 						return this.cache.get(resourceName);
 					}
 					
-					in = JNode.class.getClassLoader().getResourceAsStream(resourceName);
+					in = this.fileLoader.getInputStream(resourceName);
 					if (in != null) {
 						break builder;
 					}
@@ -99,7 +105,7 @@ public class Require extends BaseFunction {
 						return this.cache.get(resourceName);
 					}
 					
-					in = JNode.class.getClassLoader().getResourceAsStream(resourceName);
+					in = this.fileLoader.getInputStream(resourceName);
 					if (in != null) {
 						path = path + file + "/";
 						file = "index.js";
