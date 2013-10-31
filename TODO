@@ -1,0 +1,9 @@
+Tidy up script loading code
+Fix sync function
+Support \ as a path delimiter
+More unit tests
+Write a jar, or possibly even a package.json -> js jar compiler
+  Maybe even "make standalone PACKAGE=https://github.com/less/less.js/raw/master/package.json"
+  Make->ant?
+Same as above, but a runtime loader
+  E.g. java ... <package.json URL>

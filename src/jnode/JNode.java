@@ -29,6 +29,11 @@ public class JNode {
 
 	public static final String JNODE_MAIN_PROPERTY_KEY = "jnode.JNode.main";
 	public static final String JNODE_FILELOADER_PROPERTY_KEY = "jnode.JNode.fileloader";
+	public static final String JNODE_SCRIPTLOADER_PROPERTY_KEY = "jnode.JNode.scriptloader";
+	
+	public static final String JNODE_CLASS_SCRIPTLOADER = "ClassScriptLoader";
+	public static final String JNODE_CLASSPATH_SCRIPTLOADER = "ClasspathScriptLoader";
+	public static final String JNODE_GCJCOREURL_SCRIPTLOADER = "GcjCoreUrlScriptloader";
 	
 	public static void main(String[] args) throws IOException {
 		
