@@ -13,6 +13,7 @@ import java.util.Map;
 import org.mozilla.javascript.BaseFunction;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.JavaScriptException;
+import org.mozilla.javascript.Script;
 import org.mozilla.javascript.Scriptable;
 
 public class Require extends BaseFunction {
@@ -74,6 +75,9 @@ public class Require extends BaseFunction {
 				return this.cache.get(fullFilePath);
 			}
 			
+			StringBuilder scriptBuilder = new StringBuilder(4096);
+			char[] buffer = new char[2048];
+						
 			String resourceName;
 			InputStream in;
 			builder: {
@@ -118,9 +122,43 @@ public class Require extends BaseFunction {
 			}
 			
 			if (in != null) {
-				StringBuilder scriptBuilder = new StringBuilder(4096);
-				char[] buffer = new char[2048];
 				try {
+					// Try loading the file as a class
+			        String baseName = "c";
+			        if (resourceName.length() > 0) {
+			        	baseName = resourceName.replaceAll("\\W", "_");
+			        	if (!Character.isJavaIdentifierStart(baseName.charAt(0))) {
+			        		baseName = "_" + baseName;
+			        	}
+			        }
+			        
+			        try {
+						Class<?> jsClass = Class.forName("org.mozilla.javascript.gen." + baseName);
+						if (Script.class.isAssignableFrom(jsClass)) {
+							@SuppressWarnings("unchecked")
+							Class<Script> jsScriptClass = (Class<Script>)jsClass;
+							Script script = jsScriptClass.newInstance();
+							
+							Scriptable exportsScope = cx.newObject(scope);
+							exportsScope.setParentScope(scope);
+							Object r = cx.newObject(scope);
+							exportsScope.put("exports", exportsScope, r);
+							exportsScope.put("require", exportsScope, new Require(this, path));
+							this.cache.put(resourceName, r);
+							script.exec(cx, exportsScope);
+							return r;
+						}
+					} catch (ClassNotFoundException e) {
+						System.err.println("Failed to use precompiled class; " + e);
+					} catch (InstantiationException e) {
+						System.err.println("Failed to use precompiled class; " + e);
+					} catch (IllegalAccessException e) {
+						System.err.println("Failed to use precompiled class; "+ e);
+					}
+			        
+
+			        
+			        // DONE
 					try {
 						Reader reader = new InputStreamReader(in, "UTF-8");
 						try {
