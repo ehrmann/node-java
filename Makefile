@@ -12,7 +12,7 @@ lessc: js.o less.o
 		`find src -name '*.java'` js.o less.o 
 
 less.o: examples/less.jar
-	$(GCJ) -c -o less.o examples/less.jar
+	$(GCJ) -c --classpath=lib/js-no-xmlbeans.jar -o less.o examples/less.jar
 
 js.o: lib/js-no-xmlbeans.jar 
 	$(GCJ) -c --classpath=lib/js-no-xmlbeans.jar -o js.o lib/js-no-xmlbeans.jar

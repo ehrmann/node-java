@@ -22,6 +22,7 @@ import jnode.runtime.Url;
 import jnode.runtime.Util;
 
 import org.mozilla.javascript.Context;
+import org.mozilla.javascript.Script;
 import org.mozilla.javascript.Scriptable;
 
 public class JNode {
@@ -140,6 +141,33 @@ public class JNode {
 		scope.put("require", scope, new Require(Require.getPath("/", "/" + main), env, fileLoader));
 		scope.put("process", scope, new Process(mainArgs));
 		scope.put("console", scope, new Console());
+		
+        try {
+			// Try loading the file as a class
+	        String baseName = "c";
+	        if (main.length() > 0) {
+	        	baseName = main.replaceAll("\\W", "_");
+	        	if (!Character.isJavaIdentifierStart(baseName.charAt(0))) {
+	        		baseName = "_" + baseName;
+	        	}
+	        }
+	        
+			Class<?> jsClass = Class.forName("org.mozilla.javascript.gen." + baseName);
+			if (Script.class.isAssignableFrom(jsClass)) {
+				@SuppressWarnings("unchecked")
+				Class<Script> jsScriptClass = (Class<Script>)jsClass;
+				Script script2 = jsScriptClass.newInstance();
+				System.err.println("Loaded main from class");
+				script2.exec(cx, scope);
+				return;
+			}
+		} catch (ClassNotFoundException e) {
+			System.err.println("Failed to use precompiled class; " + e);
+		} catch (InstantiationException e) {
+			System.err.println("Failed to use precompiled class; " + e);
+		} catch (IllegalAccessException e) {
+			System.err.println("Failed to use precompiled class; "+ e);
+		}
 		
 		// Run the code
 		cx.evaluateString(scope, script, main, 1, null);

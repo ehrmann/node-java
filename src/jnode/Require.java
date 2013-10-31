@@ -146,6 +146,7 @@ public class Require extends BaseFunction {
 							exportsScope.put("require", exportsScope, new Require(this, path));
 							this.cache.put(resourceName, r);
 							script.exec(cx, exportsScope);
+							System.err.println("Loaded " + resourceName + " from class");
 							return r;
 						}
 					} catch (ClassNotFoundException e) {
