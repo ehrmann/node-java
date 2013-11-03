@@ -1,9 +1,9 @@
-package jnode;
+package jnode.scriptloader;
 
 import org.mozilla.javascript.Script;
 
 public interface ScriptLoader {
 
-	public Script loadScript(String path);
-	
+	public Script loadScript(String absolutePath);
+
 }

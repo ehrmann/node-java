@@ -1,15 +1,11 @@
 package jnode;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.PrintStream;
-import java.io.Reader;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import jnode.runtime.Console;
@@ -20,20 +16,28 @@ import jnode.runtime.Path;
 import jnode.runtime.Process;
 import jnode.runtime.Url;
 import jnode.runtime.Util;
+import jnode.scriptloader.ChainedResolvingScriptLoader;
+import jnode.scriptloader.ClassLoaderScriptLoader;
+import jnode.scriptloader.ClasspathScriptLoader;
+import jnode.scriptloader.GcjCoreScriptLoader;
+import jnode.scriptloader.MemoizedResolvingScriptLoader;
+import jnode.scriptloader.ResolvingScriptLoader;
+import jnode.scriptloader.ResolvingScriptLoader.ResolvedScript;
+import jnode.scriptloader.ScriptLoader;
 
 import org.mozilla.javascript.Context;
-import org.mozilla.javascript.Script;
 import org.mozilla.javascript.Scriptable;
 
 public class JNode {
 
-	public static final String JNODE_MAIN_PROPERTY_KEY = "jnode.JNode.main";
-	public static final String JNODE_FILELOADER_PROPERTY_KEY = "jnode.JNode.fileloader";
-	public static final String JNODE_SCRIPTLOADER_PROPERTY_KEY = "jnode.JNode.scriptloader";
+	public static final String MAIN_PROPERTY_KEY = "jnode.JNode.main";
+	public static final String SCRIPT_LOADER_PROPERTY_KEY = "jnode.JNode.scriptLoader";
 	
-	public static final String JNODE_CLASS_SCRIPTLOADER = "ClassScriptLoader";
-	public static final String JNODE_CLASSPATH_SCRIPTLOADER = "ClasspathScriptLoader";
-	public static final String JNODE_GCJCOREURL_SCRIPTLOADER = "GcjCoreUrlScriptloader";
+	public static final String CLASS_LOADER_SCRIPT_LOADER = "ClassLoaderScriptLoader";
+	public static final String CLASSPATH_SCRIPT_LOADER = "ClasspathScriptLoader";
+	public static final String GCJ_CORE_SCRIPTLOADER = "GcjCoreScriptloader";
+	
+	public static final String DEFAULT_SCRIPT_LOADERS = CLASSPATH_SCRIPT_LOADER;
 	
 	public static void main(String[] args) throws IOException {
 		
@@ -41,7 +45,7 @@ public class JNode {
 		String main;
 		
 		// See if we have a main specified as a system property
-		if ((main = System.getProperty(JNODE_MAIN_PROPERTY_KEY)) != null) {
+		if ((main = System.getProperty(MAIN_PROPERTY_KEY)) != null) {
 			ArrayList<String> temp = new ArrayList<String>(args.length + 2);
 			temp.add("node");
 			temp.add(main);
@@ -66,68 +70,47 @@ public class JNode {
 			mainArgs = temp.toArray(new String[0]);
 		}
 		
-		// Set up the FileLoader
-		FileLoader fileLoader;
-		if ("GcjCoreFileLoader".equals(System.getProperty(JNODE_FILELOADER_PROPERTY_KEY))) {
-			fileLoader = new GcjCoreFileLoader();
-		} else if (System.getProperty(JNODE_FILELOADER_PROPERTY_KEY) != null) {
-			fileLoader = new ClassloaderFileLoader(JNode.class.getClassLoader());
-			System.err.printf("Unrecognized %s value: %s", JNODE_FILELOADER_PROPERTY_KEY, System.getProperty(JNODE_FILELOADER_PROPERTY_KEY));
-		} else {
-			fileLoader = new ClassloaderFileLoader(JNode.class.getClassLoader());
+		// Set up the ScriptLoader
+		List<ScriptLoader> scriptLoaders = new ArrayList<ScriptLoader>();
+		for (String scriptLoaderName : System.getProperty(SCRIPT_LOADER_PROPERTY_KEY, DEFAULT_SCRIPT_LOADERS).split(",")) {
+			if (CLASS_LOADER_SCRIPT_LOADER.equals(scriptLoaderName)) {
+				scriptLoaders.add(new ClassLoaderScriptLoader(JNode.class.getClassLoader()));
+			} else if (CLASSPATH_SCRIPT_LOADER.equals(scriptLoaderName)) {
+				scriptLoaders.add(new ClasspathScriptLoader(JNode.class.getClassLoader()));
+			} else if (GCJ_CORE_SCRIPTLOADER.equals(scriptLoaderName)) {
+				scriptLoaders.add(new GcjCoreScriptLoader());
+			} else {
+				System.err.printf("Unrecognized ScriptLoader: %s\n", scriptLoaderName);
+				usage(System.err);
+				System.exit(-1);
+				return;
+			}
 		}
 		
-		// Read in called script
-		StringBuilder scriptBuilder = new StringBuilder();
-		char[] buffer = new char[2048];
-		InputStream in;
+		ScriptLoader scriptLoader;
 		
-		inInit: {
-			// First, try from the classloader
-			in = JNode.class.getClassLoader().getResourceAsStream(main);
-			if (in != null) {
-				break inInit;
-			}
-		
-			// Next, try a gcj core: URL
-			try {
-				in = (new URL("core:/" + main)).openStream();
-				if (in != null) {
-					break inInit;
-				}
-			} catch (MalformedURLException e) { }
-		}
-		
-		if (in != null) {
-			try {
-				Reader reader = new InputStreamReader(in, "UTF-8");
-				try {
-					int read;
-					while ((read = reader.read(buffer)) >= 0) {
-						scriptBuilder.append(buffer, 0 , read);
-					}
-				} finally {
-					reader.close();
-				}
-			} finally {
-				in.close();
-			}
-		} else {
-			System.err.printf("main js <%s> not fonud\n", main);
+		if (scriptLoaders.isEmpty()) {
+			System.err.printf("No ScriptLoader");
 			usage(System.err);
 			System.exit(-1);
 			return;
+		} else if (scriptLoaders.size() == 1) {
+			scriptLoader = scriptLoaders.get(0);
+		} else {
+			scriptLoader = new ChainedResolvingScriptLoader(scriptLoaders);
+		}	
+		
+		// Load main
+		ResolvingScriptLoader mainLoader = new MemoizedResolvingScriptLoader(scriptLoader, SimplePathResolutionStrategy.INSTANCE);
+		
+		ResolvedScript mainScript = mainLoader.loadScript(main, "/");
+		if (mainScript == null) {
+			System.err.printf("Main '%s' not found\n", main);
+			usage(System.err);
+			System.exit(-1);
 		}
 		
-		// Comment out the #! (if present)
-		String script = scriptBuilder.toString();
-		if (script.startsWith("#!")) {
-			script = "// " + script;
-		}
-		
-		// Wrap the script so return is supported
-		script = "(function() { " + script + "\n})();";
-		
+		// Build up the built-in environment.  At some point, this will probably get moved into a factory.
 		Context cx = Context.enter();
 		Scriptable scope = cx.initStandardObjects();
 		
@@ -143,43 +126,22 @@ public class JNode {
 		env.put("util", new Util());
 		env.put("url", new Url());
 				
-		scope.put("require", scope, new Require(Require.getPath("/", "/" + main), env, fileLoader));
+		scope.put("require", scope, new Require(mainScript.getAbsoluteDir(), env, new MemoizedResolvingScriptLoader(scriptLoader, new JNodePathResolutionStrategy())));
 		scope.put("process", scope, new Process(mainArgs));
 		scope.put("console", scope, new Console());
 		
-        try {
-			// Try loading the file as a class
-	        String baseName = "c";
-	        if (main.length() > 0) {
-	        	baseName = main.replaceAll("\\W", "_");
-	        	if (!Character.isJavaIdentifierStart(baseName.charAt(0))) {
-	        		baseName = "_" + baseName;
-	        	}
-	        }
-	        
-			Class<?> jsClass = Class.forName("org.mozilla.javascript.gen." + baseName);
-			if (Script.class.isAssignableFrom(jsClass)) {
-				@SuppressWarnings("unchecked")
-				Class<Script> jsScriptClass = (Class<Script>)jsClass;
-				Script script2 = jsScriptClass.newInstance();
-				System.err.println("Loaded main from class");
-				script2.exec(cx, scope);
-				return;
-			}
-		} catch (ClassNotFoundException e) {
-			System.err.println("Failed to use precompiled class; " + e);
-		} catch (InstantiationException e) {
-			System.err.println("Failed to use precompiled class; " + e);
-		} catch (IllegalAccessException e) {
-			System.err.println("Failed to use precompiled class; "+ e);
-		}
-		
-		// Run the code
-		cx.evaluateString(scope, script, main, 1, null);
+		// Run main
+		mainScript.exec(cx, scope);
 	}
 	
 	public static void usage(PrintStream out) {
 		out.printf("Usage: java -cp ... %s <main js> [args]\n", JNode.class.getCanonicalName());
+		out.printf("  System properties:\n");
+		out.printf("    -D%s=... - specify main by property.  <main js> must not be omitted\n", MAIN_PROPERTY_KEY);
+		out.printf("    -D%s=... - specify search order for looking up JS files\n", SCRIPT_LOADER_PROPERTY_KEY);
+		out.printf("      %s - Load resources from the classpath\n", CLASSPATH_SCRIPT_LOADER);
+		out.printf("      %s - Load precomiled resources\n", CLASS_LOADER_SCRIPT_LOADER);
+		out.printf("      %s - Load resources from core:/ URLs\n", GCJ_CORE_SCRIPTLOADER);
 	}
 
 }
