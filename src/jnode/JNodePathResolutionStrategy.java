@@ -5,8 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 
 public class JNodePathResolutionStrategy implements PathResolutionStrategy {
-
-	@Override
+	
 	public Iterator<String> getLookupQueue(String absolutePath) {
 		List<String> queue = new ArrayList<String>(3);
 

@@ -17,7 +17,6 @@ public abstract class InputStreamScriptLoader implements ScriptLoader {
 	protected static final char[] HEADER = "(function() { // ".toCharArray();
 	protected static final char[] TRAILER = "\n})();".toCharArray();
 	
-	@Override
 	public Script loadScript(String absolutePath) {
 		try {
 		InputStream in = this.getInputStream(absolutePath);

@@ -18,7 +18,6 @@ public class ChainedResolvingScriptLoader implements ScriptLoader {
 		this.scriptLoaders = Collections.unmodifiableList(new ArrayList<ScriptLoader>(scriptLoaders));
 	}
 
-	@Override
 	public Script loadScript(String absolutePath) {
 		Script script = null;
 		

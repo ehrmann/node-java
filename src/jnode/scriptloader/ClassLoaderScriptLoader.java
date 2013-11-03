@@ -1,5 +1,7 @@
 package jnode.scriptloader;
 
+import jnode.JSCompiler;
+
 import org.mozilla.javascript.Script;
 
 public class ClassLoaderScriptLoader implements ScriptLoader {
@@ -14,34 +16,27 @@ public class ClassLoaderScriptLoader implements ScriptLoader {
 		this.classLoader = classLoader;
 	}
 
-	@Override
 	public Script loadScript(String absolutePath) {
 		
-		// Convert the path name to a class name.
-		// This is slightly modified logic from the Rhino code.  The Rhino code appends a
-		// sequence ID to the class name
-        String baseName = "c";
-        if (absolutePath.length() > 0) {
-        	baseName = absolutePath.replaceAll("\\W", "_");
-        	if (!Character.isJavaIdentifierStart(baseName.charAt(0))) {
-        		baseName = "_" + baseName;
-        	}
-        }
+		// Trim out the leading forward slash
+		absolutePath = absolutePath.substring(1);
         
         // Now try to load and instantiate the class
         Script result = null;
         try {
-			Class<?> jsClass = Class.forName("org.mozilla.javascript.gen." + baseName);
+			Class<?> jsClass = Class.forName(JSCompiler.getClassName(absolutePath));
 			if (Script.class.isAssignableFrom(jsClass)) {
 				@SuppressWarnings("unchecked")
 				Class<Script> jsScriptClass = (Class<Script>)jsClass;
 				result = jsScriptClass.newInstance();
 			}
 		} catch (ClassNotFoundException e) {
-			System.err.println("Failed to use precompiled class; " + e);
+			// The path resolver might be trying different things, so this error could be benign
 		} catch (InstantiationException e) {
+			// TODO: this is a real error; the class is very much a Rhino JS class, but it's not acting like one.
 			System.err.println("Failed to use precompiled class; " + e);
 		} catch (IllegalAccessException e) {
+			// TODO: this is a real error; the class is very much a Rhino JS class, but it's not acting like one.
 			System.err.println("Failed to use precompiled class; "+ e);
 		}
         

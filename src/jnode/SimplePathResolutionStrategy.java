@@ -9,7 +9,6 @@ public final class SimplePathResolutionStrategy implements PathResolutionStrateg
 	
 	private SimplePathResolutionStrategy() { }
 	
-	@Override
 	public Iterator<String> getLookupQueue(String absolutePath) {
 		return Collections.singletonList(absolutePath).iterator();
 	}

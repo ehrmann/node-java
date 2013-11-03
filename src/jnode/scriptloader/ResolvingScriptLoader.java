@@ -35,17 +35,14 @@ public interface ResolvingScriptLoader {
 			this.file = file;
 		}
 		
-		@Override
 		public Object exec(Context cx, Scriptable scriptable) {
 			return this.script.exec(cx, scriptable);
 		}
 
-		@Override
 		public String getFile() {
 			return this.file;
 		}
 
-		@Override
 		public String getAbsoluteDir() {
 			return this.dir;
 		}

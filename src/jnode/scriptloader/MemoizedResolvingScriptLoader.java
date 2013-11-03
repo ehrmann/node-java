@@ -30,7 +30,6 @@ public class MemoizedResolvingScriptLoader implements ResolvingScriptLoader {
 		this.pathResolutionStrategy = pathResolutionStrategy;
 	}
 	
-	@Override
 	public ResolvedScript loadScript(String relativePath, String pwd) {
 		
 		// Get a canonical name for this entry

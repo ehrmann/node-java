@@ -15,7 +15,6 @@ public class ClasspathScriptLoader extends InputStreamScriptLoader {
 		this.classLoader = classLoader;
 	}
 
-	@Override
 	protected InputStream getInputStream(String absolutePath) throws IOException {
 		if (absolutePath.length() == 0) {
 			throw new IOException("Empty absolutePath");
