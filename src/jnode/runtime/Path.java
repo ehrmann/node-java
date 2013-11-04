@@ -26,8 +26,10 @@ public class Path {
 	}
 	
 	
-	public String resolve(String[] parts) {
+	// TODO: make this JS varargs
+	public String resolve(String part1, String part2) {
 		
+		String[] parts = new String[] { part1, part2 };
 		LinkedList<String> pathList = new LinkedList<String>();
 		
 		for (String part : parts) {

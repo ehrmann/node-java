@@ -48,12 +48,12 @@ public class PathTest {
 	public void testUnixResolve() {
 		Path path = new Path("/");
 		
-		assertEquals("/tmp/outfile", path.resolve(new String[] { "/home/dehrmann", "/tmp/outfile" }));
-		assertEquals("/home/dehrmann/outfile", path.resolve(new String[] { "/home/dehrmann", "outfile" }));
-		assertEquals("/home/outfile", path.resolve(new String[] { "/home/dehrmann", "../outfile" }));
-		assertEquals("/outfile", path.resolve(new String[] { "/", "outfile" }));
-		assertEquals("/outfile", path.resolve(new String[] { "/", "../outfile" }));
-		assertEquals("../../outfile", path.resolve(new String[] { ".", "../foo/../../outfile" }));
+		assertEquals("/tmp/outfile", path.resolve("/home/dehrmann", "/tmp/outfile"));
+		assertEquals("/home/dehrmann/outfile", path.resolve("/home/dehrmann", "outfile"));
+		assertEquals("/home/outfile", path.resolve("/home/dehrmann", "../outfile"));
+		assertEquals("/outfile", path.resolve("/", "outfile"));
+		assertEquals("/outfile", path.resolve("/", "../outfile"));
+		assertEquals("../../outfile", path.resolve(".", "../foo/../../outfile"));
 	}
 	
 	public void testWinDirname() {
