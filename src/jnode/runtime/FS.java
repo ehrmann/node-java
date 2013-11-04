@@ -105,6 +105,7 @@ public class FS extends AbstractRuntimeObject {
 	}
 	
 	public void writeFileSync(String filename, String text, String encoding) {
+		System.err.println("writing " + filename);
 		try {
 			OutputStream out = new FileOutputStream(filename);
 			try {

@@ -44,6 +44,18 @@ public class PathTest {
 		assertEquals("bar", path.basename("foo/bar.html", ".html"));
 	}
 
+	@Test
+	public void testUnixResolve() {
+		Path path = new Path("/");
+		
+		assertEquals("/tmp/outfile", path.resolve(new String[] { "/home/dehrmann", "/tmp/outfile" }));
+		assertEquals("/home/dehrmann/outfile", path.resolve(new String[] { "/home/dehrmann", "outfile" }));
+		assertEquals("/home/outfile", path.resolve(new String[] { "/home/dehrmann", "../outfile" }));
+		assertEquals("/outfile", path.resolve(new String[] { "/", "outfile" }));
+		assertEquals("/outfile", path.resolve(new String[] { "/", "../outfile" }));
+		assertEquals("../../outfile", path.resolve(new String[] { ".", "../foo/../../outfile" }));
+	}
+	
 	public void testWinDirname() {
 		Path path = new Path("\\");
 		
