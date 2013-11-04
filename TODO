@@ -1,4 +1,3 @@
-Tidy up script loading code
 Fix sync function
 Support \ as a path delimiter
 More unit tests
