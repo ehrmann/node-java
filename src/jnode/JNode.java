@@ -119,7 +119,7 @@ public class JNode {
 		Map<String, Object> env = new LinkedHashMap<String, Object>();
 
 		env.put("fs", new FS(cx, scope));
-		env.put("mkdirp", new Mkdirp());
+		env.put("mkdirp", new Mkdirp(cx, scope));
 		env.put("os", new Os());
 		env.put("sys", new Util());
 		env.put("path", new Path());

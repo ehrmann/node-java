@@ -6,10 +6,36 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.mozilla.javascript.Context;
 import org.mozilla.javascript.JavaScriptException;
+import org.mozilla.javascript.Scriptable;
 
-public class Mkdirp {
+public class Mkdirp extends AbstractRuntimeObject {
 
+	private static final long serialVersionUID = 1126257238002685544L;
+	
+	
+	public Mkdirp(Context cx, Scriptable scope) {
+		super(cx, scope, "mkdirp");
+		super.defaultPut("sync", new Sync());
+	}
+		
+	protected class Sync extends AbstractRuntimeFunction {
+
+		private static final long serialVersionUID = -2761501773546300533L;
+
+		@Override
+		public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
+			if (args.length == 1) {
+				return Mkdirp.this.sync(args[0].toString());
+			} else if (args.length == 2) {
+				return Mkdirp.this.sync(args[0].toString(), Integer.parseInt(args[1].toString()));
+			} else {
+				return Context.getUndefinedValue();
+			}
+		}
+	}
+	
 	public String sync(String path) {
 		return sync(path, 777);
 	}

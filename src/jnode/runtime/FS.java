@@ -12,54 +12,26 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 
-import org.mozilla.javascript.BaseFunction;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.JavaScriptException;
-import org.mozilla.javascript.NativeObject;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.annotations.JSFunction;
 
-public class FS extends NativeObject {
+public class FS extends AbstractRuntimeObject {
 
 	private static final long serialVersionUID = 3472871496662624798L;
-	
-	protected final Context cx;
-	protected final Scriptable scope;
-	
+
 	public FS(Context cx, Scriptable scope) {
-		super();
-		
-		if (cx == null) {
-			throw new NullPointerException("context was null");
-		}
-		if (scope == null) {
-			throw new NullPointerException("scope was null");
-		}
-		
-		this.cx = cx;
-		this.scope = scope;
+		super(cx, scope, "fs");
 		
 		super.defaultPut("existsSync", new ExistsSync());
 		super.defaultPut("readFile", new ReadFile());
 		super.defaultPut("writeFileSync", new WriteFileSync());
 		super.defaultPut("mkdirSync", new MkdirSync());
 	}
-
-	@Override
-	public Object getDefaultValue(Class<?> typeHint) {
-		return "fs";
-	}
 	
-	protected abstract class FSFunction extends BaseFunction {
-		private static final long serialVersionUID = 2936279843075497840L;
-
-		public FSFunction() {
-			super(FS.this.scope, FS.this.scope);
-		}
-	}
-	
-	protected class ExistsSync extends FSFunction {
+	protected class ExistsSync extends AbstractRuntimeFunction {
 		private static final long serialVersionUID = -2964017003217947062L;
 
 		@Override
@@ -68,7 +40,7 @@ public class FS extends NativeObject {
 		}
 	}
 
-	protected class ReadFile extends FSFunction {
+	protected class ReadFile extends AbstractRuntimeFunction {
 		private static final long serialVersionUID = 6317513946924334392L;
 
 		@Override
@@ -78,7 +50,7 @@ public class FS extends NativeObject {
 		}
 	}
 	
-	protected class WriteFileSync extends FSFunction {
+	protected class WriteFileSync extends AbstractRuntimeFunction {
 		private static final long serialVersionUID = 8797102996639482881L;
 
 		@Override
@@ -88,7 +60,7 @@ public class FS extends NativeObject {
 		}
 	}
 
-	protected class MkdirSync extends FSFunction {
+	protected class MkdirSync extends AbstractRuntimeFunction {
 		private static final long serialVersionUID = 200438842358703423L;
 
 		@Override
