@@ -1,6 +1,9 @@
 bin
+target
 *.class
+*.iml
 *.o
 .project
 .classpath
 .settings
+.idea
