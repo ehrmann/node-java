@@ -4,7 +4,7 @@ all: lessc
 
 lessc: js.o less.o
 	$(GCJ) \
-		--main=jnode.JNode \
+		--main=JNodeRunner \
 		-Djnode.JNode.main=bin/lessc \
 		-Djnode.JNode.scriptLoader=ClassLoaderScriptLoader \
 		--classpath=lib/js-no-xmlbeans.jar:src \
