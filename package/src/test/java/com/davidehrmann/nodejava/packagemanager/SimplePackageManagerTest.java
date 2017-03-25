@@ -107,25 +107,4 @@ public class SimplePackageManagerTest {
         System.err.println("file = " + file);
     }
 
-    /**
-     * This test is a placeholder for saving the code for installing new packages in the test database
-     */
-    @Ignore
-    @Test
-    public void installer() throws FileStoreException, RepositoryException, PackageManagerException, IOException, NoMatchingPackageException, NoMatchingVersionException, SQLException {
-        File file = new File(Joiner.on(File.separatorChar).join(System.getProperty("user.dir"), "test", "jnode", "pkgdb.sqlite"));
-        Assert.assertTrue(file.exists());
-        Assert.assertTrue(file.canWrite());
-
-        SQLiteDataSource dataSource = new SQLiteDataSource();
-        dataSource.setUrl("jdbc:sqlite:" + file);
-
-        PackageStore packageStore = new SqlitePackageStore(dataSource, 1);
-        Repository repository = new NpmCouchRepository("https://skimdb.npmjs.com/registry/");
-
-        PackageManager packageManager = new SimplePackageManager(packageStore);
-        packageManager.addRepository("iris-couch", repository, 0);
-
-        packageManager.installPackageAndDependencies("less", VersionSpec.fromString("*"), true, true);
-    }
 }
